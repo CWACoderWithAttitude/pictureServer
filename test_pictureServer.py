@@ -1,27 +1,20 @@
 # https://docs.pytest.org/en/7.1.x/getting-started.html#get-started
-import os
+from PictureServer import PictureServer
+from PictureServer import *
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import time
+# https://pythonbasics.org/webserver/
+class MyServer(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(bytes("<html><head><title>https://pythonbasics.org</title></head>", "utf-8"))
+        self.wfile.write(bytes("<p>Request: %s</p>" % self.path, "utf-8"))
+        self.wfile.write(bytes("<body>", "utf-8"))
+        self.wfile.write(bytes("<p>This is an example web server.</p>", "utf-8"))
+        self.wfile.write(bytes("</body></html>", "utf-8"))
 
-class PictureServer():
-  def __init__(self):
-    print('init')
-  def list_files(self, path):
-    files = os.listdir(path)
-    return files
-  
-  def build_link(self, path, file):
-    return '<a href="{}/{}">{}</a>'.format(path, file, file)
-
-  def build_links(self, path):
-    files = self.list_files(path)
-    links=[]
-    for file in files:
-      links.append(self.build_link(path, file))
-
-    return links
-
-  def build_page(self, path):
-    links = self.build_links(path)
-    return "<html><body>{}</body></html>".format(links)
   
 def test_init():
   ps = PictureServer()
@@ -61,3 +54,14 @@ def test_link_count_on_page():
   assert 0 < page.find('<a href')  
   assert len(ps.list_files(path)) == page.count('<a href')  
   
+if __name__ == "__main__":  
+    webServer = HTTPServer((hostName, serverPort), MyServer)
+    print("Server started http://%s:%s" % (hostName, serverPort))
+
+    try:
+        webServer.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+    webServer.server_close()
+    print("Server stopped.")
